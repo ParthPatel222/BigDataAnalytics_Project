@@ -1,0 +1,308 @@
+Last login: Wed May  1 18:29:44 on ttys001
+parthpatel@Parths-MacBook-Pro ~ % cd desktop      
+parthpatel@Parths-MacBook-Pro desktop % spark-shell
+24/05/02 15:34:02 WARN Utils: Your hostname, Parths-MacBook-Pro.local resolves to a loopback address: 127.0.0.1; using 10.100.167.254 instead (on interface en0)
+24/05/02 15:34:02 WARN Utils: Set SPARK_LOCAL_IP if you need to bind to another address
+Setting default log level to "WARN".
+To adjust logging level use sc.setLogLevel(newLevel). For SparkR, use setLogLevel(newLevel).
+24/05/02 15:34:04 WARN NativeCodeLoader: Unable to load native-hadoop library for your platform... using builtin-java classes where applicable
+Spark context Web UI available at http://10.100.167.254:4040
+Spark context available as 'sc' (master = local[*], app id = local-1714678445091).
+Spark session available as 'spark'.
+Welcome to
+      ____              __
+     / __/__  ___ _____/ /__
+    _\ \/ _ \/ _ `/ __/  '_/
+   /___/ .__/\_,_/_/ /_/\_\   version 3.5.0
+      /_/
+         
+Using Scala version 2.12.18 (OpenJDK 64-Bit Server VM, Java 17.0.9)
+Type in expressions to have them evaluated.
+Type :help for more information.
+
+scala> val data = spark.read.option("header", "true").option("inferSchema", "true").csv("/Users/parthpatel/Desktop/cleanedData.csv")
+data: org.apache.spark.sql.DataFrame = [hotel_class: int, name: string ... 8 more fields]
+
+scala> data.printSchema()
+root
+ |-- hotel_class: integer (nullable = true)
+ |-- name: string (nullable = true)
+ |-- service: integer (nullable = true)
+ |-- cleanliness: integer (nullable = true)
+ |-- overall: integer (nullable = true)
+ |-- value: integer (nullable = true)
+ |-- location: integer (nullable = true)
+ |-- sleep_quality: integer (nullable = true)
+ |-- rooms: integer (nullable = true)
+ |-- locality: string (nullable = true)
+
+
+scala> data.show()
++-----------+------------+-------+-----------+-------+-----+--------+-------------+-----+-------------+
+|hotel_class|        name|service|cleanliness|overall|value|location|sleep_quality|rooms|     locality|
++-----------+------------+-------+-----------+-------+-----+--------+-------------+-----+-------------+
+|          3|Hotel Beacon|      5|          5|      5|    5|       5|            5|    5|New York City|
+|          3|Hotel Beacon|      5|          5|      5|    5|       5|            5|    5|New York City|
+|          3|Hotel Beacon|      5|          5|      5|    5|       5|            5|    5|New York City|
+|          3|Hotel Beacon|      5|          5|      5|    4|       5|            5|    5|New York City|
+|          3|Hotel Beacon|      5|          5|      5|    4|       5|            5|    5|New York City|
+|          3|Hotel Beacon|      5|          5|      5|    5|       5|            5|    5|New York City|
+|          3|Hotel Beacon|      5|          5|      5|    4|       5|            5|    5|New York City|
+|          3|Hotel Beacon|      4|          5|      4|    4|       4|            5|    4|New York City|
+|          3|Hotel Beacon|      4|          4|      4|    5|       5|            4|    5|New York City|
+|          3|Hotel Beacon|      5|          5|      5|    5|       4|            5|    5|New York City|
+|          3|Hotel Beacon|      5|          4|      5|    4|       4|            4|    4|New York City|
+|          3|Hotel Beacon|      4|          5|      4|    4|       5|            5|    5|New York City|
+|          3|Hotel Beacon|      5|          5|      5|    5|       5|            5|    4|New York City|
+|          3|Hotel Beacon|      4|          4|      4|    5|       5|            5|    4|New York City|
+|          3|Hotel Beacon|      5|          5|      5|    5|       5|            5|    5|New York City|
+|          3|Hotel Beacon|      5|          5|      5|    5|       5|            4|    5|New York City|
+|          3|Hotel Beacon|      5|          5|      5|    5|       5|            5|    5|New York City|
+|          3|Hotel Beacon|      5|          5|      5|    5|       4|            5|    5|New York City|
+|          3|Hotel Beacon|      5|          5|      4|    4|       5|            5|    5|New York City|
+|          3|Hotel Beacon|      5|          5|      5|    5|       5|            5|    5|New York City|
++-----------+------------+-------+-----------+-------+-----+--------+-------------+-----+-------------+
+only showing top 20 rows
+
+// to show missing values
+scala> data.select(data.columns.map(colName => sum(col(colName).isNull.cast("int")).alias(colName)): _*).show()
++-----------+----+-------+-----------+-------+-----+--------+-------------+-----+--------+
+|hotel_class|name|service|cleanliness|overall|value|location|sleep_quality|rooms|locality|
++-----------+----+-------+-----------+-------+-----+--------+-------------+-----+--------+
+|          0|   0|      0|          0|      0|    0|       0|            0|    0|    2979|
++-----------+----+-------+-----------+-------+-----+--------+-------------+-----+--------+
+
+//drop those values
+scala> val cleanedData = data.na.drop()
+cleanedData: org.apache.spark.sql.DataFrame = [hotel_class: int, name: string ... 8 more fields]
+
+scala> data.select(data.columns.map(colName => sum(col(colName).isNull.cast("int")).alias(colName)): _*).show()
++-----------+----+-------+-----------+-------+-----+--------+-------------+-----+--------+
+|hotel_class|name|service|cleanliness|overall|value|location|sleep_quality|rooms|locality|
++-----------+----+-------+-----------+-------+-----+--------+-------------+-----+--------+
+|          0|   0|      0|          0|      0|    0|       0|            0|    0|    2979|
++-----------+----+-------+-----------+-------+-----+--------+-------------+-----+--------+
+
+
+scala> cleanedData.select(cleanedData.columns.map(colName => sum(col(colName).isNull.cast("int")).alias(colName)): _*).show()
++-----------+----+-------+-----------+-------+-----+--------+-------------+-----+--------+
+|hotel_class|name|service|cleanliness|overall|value|location|sleep_quality|rooms|locality|
++-----------+----+-------+-----------+-------+-----+--------+-------------+-----+--------+
+|          0|   0|      0|          0|      0|    0|       0|            0|    0|       0|
++-----------+----+-------+-----------+-------+-----+--------+-------------+-----+--------+
+
+
+scala> val featureCols = cleanedData.columns.drop(1)
+featureCols: Array[String] = Array(name, service, cleanliness, overall, value, location, sleep_quality, rooms, locality)
+
+scala> val featureCols = cleanedData.columns.drop(1).dropRight(1)
+featureCols: Array[String] = Array(name, service, cleanliness, overall, value, location, sleep_quality, rooms)
+
+scala> featureCols.show()
+<console>:24: error: value show is not a member of Array[String]
+       featureCols.show()
+                   ^
+
+scala> featureCols.
+++              filterNot            maxBy               span            
+++:             find                 min                 splitAt         
++:              flatMap              minBy               startsWith      
+/:              flatten              mkString            stringPrefix    
+:+              fold                 nonEmpty            sum             
+:\              foldLeft             orElse              tail            
+addString       foldRight            padTo               tails           
+aggregate       forall               par                 take            
+andThen         foreach              partition           takeRight       
+apply           genericBuilder       patch               takeWhile       
+applyOrElse     groupBy              permutations        to              
+array           grouped              prefixLength        toArray         
+canEqual        hasDefiniteSize      product             toBuffer        
+clone           head                 reduce              toIndexedSeq    
+collect         headOption           reduceLeft          toIterable      
+collectFirst    indexOf              reduceLeftOption    toIterator      
+combinations    indexOfSlice         reduceOption        toList          
+companion       indexWhere           reduceRight         toMap           
+compose         indices              reduceRightOption   toSeq           
+contains        init                 repr                toSet           
+containsSlice   inits                reverse             toStream        
+copyToArray     intersect            reverseIterator     toTraversable   
+copyToBuffer    isDefinedAt          reverseMap          toVector        
+corresponds     isEmpty              runWith             transform       
+count           isTraversableAgain   sameElements        transpose       
+deep            iterator             scan                union           
+diff            last                 scanLeft            unzip           
+distinct        lastIndexOf          scanRight           unzip3          
+drop            lastIndexOfSlice     segmentLength       update          
+dropRight       lastIndexWhere       seq                 updated         
+dropWhile       lastOption           size                view            
+elemManifest    length               slice               withFilter      
+elemTag         lengthCompare        sliding             zip             
+endsWith        lift                 sortBy              zipAll          
+exists          map                  sortWith            zipWithIndex    
+filter          max                  sorted                              
+
+scala> val featureCols = cleanedData.columns.filter(_ != "hotel_class").filter(_ != "name").filter(_ != "locality")
+featureCols: Array[String] = Array(service, cleanliness, overall, value, location, sleep_quality, rooms)
+
+scala> val X = assembledData.select("features")
+<console>:22: error: not found: value assembledData
+       val X = assembledData.select("features")
+               ^
+
+scala> val Array(trainData, testData) = cleanedData.randomSplit(Array(0.7, 0.3), seed = 123)
+trainData: org.apache.spark.sql.Dataset[org.apache.spark.sql.Row] = [hotel_class: int, name: string ... 8 more fields]
+testData: org.apache.spark.sql.Dataset[org.apache.spark.sql.Row] = [hotel_class: int, name: string ... 8 more fields]
+
+scala> println("Training set count: " + trainData.count())
+Training set count: 614230                                                      
+
+scala> println("Testing set count: " + testData.count())
+Testing set count: 261352
+
+scala> import org.apache.spark.ml.classification.DecisionTreeClassifier
+import org.apache.spark.ml.classification.DecisionTreeClassifier
+
+scala> val dt = new DecisionTreeClassifier().setLabelCol("hotel_class").setFeatures("features")
+<console>:23: error: value setFeatures is not a member of org.apache.spark.ml.classification.DecisionTreeClassifier
+       val dt = new DecisionTreeClassifier().setLabelCol("hotel_class").setFeatures("features")
+                                                                        ^
+
+scala> val dt = new DecisionTreeClassifier().setLabelCol("hotel_class").setFeaturesCol("features")
+dt: org.apache.spark.ml.classification.DecisionTreeClassifier = dtc_8f12ed88bcd0
+
+scala> val dtModel = dt.fit(trainData)
+java.lang.IllegalArgumentException: features does not exist. Available: hotel_class, name, service, cleanliness, overall, value, location, sleep_quality, rooms, locality
+  at org.apache.spark.sql.types.StructType.$anonfun$apply$1(StructType.scala:280)
+  at scala.collection.immutable.HashMap$HashTrieMap.getOrElse0(HashMap.scala:596)
+  at scala.collection.immutable.HashMap.getOrElse(HashMap.scala:73)
+  at org.apache.spark.sql.types.StructType.apply(StructType.scala:279)
+  at org.apache.spark.ml.util.SchemaUtils$.checkColumnType(SchemaUtils.scala:42)
+  at org.apache.spark.ml.PredictorParams.validateAndTransformSchema(Predictor.scala:49)
+  at org.apache.spark.ml.PredictorParams.validateAndTransformSchema$(Predictor.scala:44)
+  at org.apache.spark.ml.classification.Classifier.org$apache$spark$ml$classification$ClassifierParams$$super$validateAndTransformSchema(Classifier.scala:53)
+  at org.apache.spark.ml.classification.ClassifierParams.validateAndTransformSchema(Classifier.scala:40)
+  at org.apache.spark.ml.classification.ClassifierParams.validateAndTransformSchema$(Classifier.scala:36)
+  at org.apache.spark.ml.classification.ProbabilisticClassifier.org$apache$spark$ml$classification$ProbabilisticClassifierParams$$super$validateAndTransformSchema(ProbabilisticClassifier.scala:51)
+  at org.apache.spark.ml.classification.ProbabilisticClassifierParams.validateAndTransformSchema(ProbabilisticClassifier.scala:38)
+  at org.apache.spark.ml.classification.ProbabilisticClassifierParams.validateAndTransformSchema$(ProbabilisticClassifier.scala:34)
+  at org.apache.spark.ml.classification.DecisionTreeClassifier.org$apache$spark$ml$tree$DecisionTreeClassifierParams$$super$validateAndTransformSchema(DecisionTreeClassifier.scala:48)
+  at org.apache.spark.ml.tree.DecisionTreeClassifierParams.validateAndTransformSchema(treeParams.scala:245)
+  at org.apache.spark.ml.tree.DecisionTreeClassifierParams.validateAndTransformSchema$(treeParams.scala:241)
+  at org.apache.spark.ml.classification.DecisionTreeClassifier.validateAndTransformSchema(DecisionTreeClassifier.scala:48)
+  at org.apache.spark.ml.Predictor.transformSchema(Predictor.scala:140)
+  at org.apache.spark.ml.PipelineStage.transformSchema(Pipeline.scala:71)
+  at org.apache.spark.ml.Predictor.fit(Predictor.scala:96)
+  ... 47 elided
+
+scala> import org.apache.spark.ml.feature.VectorAssembler
+import org.apache.spark.ml.feature.VectorAssembler
+
+scala> val featureCols = cleanedData.columns.filter(_ != "hotel_class").filter(_ != "name").filter(_ != "locality")
+featureCols: Array[String] = Array(service, cleanliness, overall, value, location, sleep_quality, rooms)
+
+scala> val assembler = new VectorAssembler().setInputCols(featureCols).setOutputCol("features")
+assembler: org.apache.spark.ml.feature.VectorAssembler = VectorAssembler: uid=vecAssembler_ce2dffee4ab9, handleInvalid=error, numInputCols=7
+
+scala> val assembledData = assembler.transform(cleanedData)
+assembledData: org.apache.spark.sql.DataFrame = [hotel_class: int, name: string ... 9 more fields]
+
+scala> val Array(trainData, testData) = assembledData.randomSplit(Array(0.7, 0.3), seed = 123)
+trainData: org.apache.spark.sql.Dataset[org.apache.spark.sql.Row] = [hotel_class: int, name: string ... 9 more fields]
+testData: org.apache.spark.sql.Dataset[org.apache.spark.sql.Row] = [hotel_class: int, name: string ... 9 more fields]
+
+scala> val dtModel = dt.fit(trainData)
+dtModel: org.apache.spark.ml.classification.DecisionTreeClassificationModel = DecisionTreeClassificationModel: uid=dtc_8f12ed88bcd0, depth=5, numNodes=35, numClasses=6, numFeatures=7
+
+scala> import org.apache.spark.ml.evaluation.MulticlassClassificationEvaluator
+import org.apache.spark.ml.evaluation.MulticlassClassificationEvaluator
+
+scala> import org.apache.spark.mllib.evaluation.MulticlassMetrics
+import org.apache.spark.mllib.evaluation.MulticlassMetrics
+
+scala> val predictions = dtModel.transform(testData)
+predictions: org.apache.spark.sql.DataFrame = [hotel_class: int, name: string ... 12 more fields]
+
+scala> val evaluator = new MulticlassClassificationEvaluator().setLabelCol("hotel_class").setPredictionCol("prediction").setMetricName("accuracy")
+evaluator: org.apache.spark.ml.evaluation.MulticlassClassificationEvaluator = MulticlassClassificationEvaluator: uid=mcEval_dbf0cdc516ea, metricName=accuracy, metricLabel=0.0, beta=1.0, eps=1.0E-15
+
+scala> val accuracy = evaluator.evaluate(predictions)
+accuracy: Double = 0.5059153937984021                                           
+
+// 51 % accuracy
+scala> println(s"Test set accuracy = $accuracy")
+Test set accuracy = 0.5059153937984021
+
+scala> val predictionAndLabels = predictions.select("prediction", "hotel_class").rdd.map {
+     |   case row => (row.getDouble(0), row.getInt(1).toDouble)
+     | }
+predictionAndLabels: org.apache.spark.rdd.RDD[(Double, Double)] = MapPartitionsRDD[108] at map at <console>:27
+
+scala> val metrics = new MulticlassMetrics(predictionAndLabels)
+metrics: org.apache.spark.mllib.evaluation.MulticlassMetrics = org.apache.spark.mllib.evaluation.MulticlassMetrics@60fd85cb
+
+scala> val predictions = dtModel.transform(testData)
+predictions: org.apache.spark.sql.DataFrame = [hotel_class: int, name: string ... 12 more fields]
+
+scala> val predictionAndLabels = predictions.select("prediction", "hotel_class").rdd.map {
+     |   case row => (row.getDouble(0), row.getInt(1).toDouble)
+     | }
+predictionAndLabels: org.apache.spark.rdd.RDD[(Double, Double)] = MapPartitionsRDD[117] at map at <console>:27
+
+// analyze error
+scala> val errors = predictionAndLabels.filter { case (prediction, label) => prediction != label }
+errors: org.apache.spark.rdd.RDD[(Double, Double)] = MapPartitionsRDD[118] at filter at <console>:27
+
+scala> val errorCount = errors.count()
+errorCount: Long = 129130                                                       
+
+scala> println(s"Total number of errors: $errorCount")
+Total number of errors: 129130
+
+scala> val sampleErrors = errors.take(10)
+sampleErrors: Array[(Double, Double)] = Array((2.0,1.0), (3.0,1.0), (3.0,1.0), (2.0,1.0), (3.0,1.0), (3.0,1.0), (3.0,1.0), (4.0,1.0), (4.0,1.0), (2.0,1.0))
+
+scala> sampleErrors.foreach { case (prediction, label) =>
+     |   println(s"Prediction: $prediction, Actual: $label")
+     | }
+Prediction: 2.0, Actual: 1.0
+Prediction: 3.0, Actual: 1.0
+Prediction: 3.0, Actual: 1.0
+Prediction: 2.0, Actual: 1.0
+Prediction: 3.0, Actual: 1.0
+Prediction: 3.0, Actual: 1.0
+Prediction: 3.0, Actual: 1.0
+Prediction: 4.0, Actual: 1.0
+Prediction: 4.0, Actual: 1.0
+Prediction: 2.0, Actual: 1.0
+
+scala> val predictionsAndLabels = predictions.select("prediction", "hotel_class").as[(Double, Double)].rdd
+predictionsAndLabels: org.apache.spark.rdd.RDD[(Double, Double)] = MapPartitionsRDD[124] at rdd at <console>:27
+
+scala> val metrics = new MulticlassMetrics(predictionsAndLabels)
+metrics: org.apache.spark.mllib.evaluation.MulticlassMetrics = org.apache.spark.mllib.evaluation.MulticlassMetrics@7d691528
+
+scala> val classes = metrics.labels.sorted
+classes: Array[Double] = Array(1.0, 2.0, 3.0, 4.0, 5.0)                         
+
+scala> classes.foreach { label =>
+     |   println(s"Class $label precision: ${metrics.precision(label)}")
+     |   println(s"Class $label recall: ${metrics.recall(label)}")
+     |   println(s"Class $label F1-score: ${metrics.fMeasure(label)}")
+     | }
+Class 1.0 precision: 0.0
+Class 1.0 recall: 0.0
+Class 1.0 F1-score: 0.0
+Class 2.0 precision: 0.44846770828503874
+Class 2.0 recall: 0.23557060055525791
+Class 2.0 F1-score: 0.30888856955820604
+Class 3.0 precision: 0.4928242059996891
+Class 3.0 recall: 0.6084787118352875
+Class 3.0 F1-score: 0.5445786679970884
+Class 4.0 precision: 0.5346497764530551
+Class 4.0 recall: 0.5581764142663369
+Class 4.0 F1-score: 0.5461598516639017
+Class 5.0 precision: 0.0
+Class 5.0 recall: 0.0
+Class 5.0 F1-score: 0.0
+
+
